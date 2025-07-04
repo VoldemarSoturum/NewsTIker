@@ -17,59 +17,75 @@
       background: #222;
       height: 40px;
       line-height: 40px;
+      position: relative;
     }
     .ticker {
       display: inline-block;
       white-space: nowrap;
-      animation: scroll 40s linear infinite;
+      will-change: transform;
+      animation: scroll 60s linear infinite;
     }
     .ticker a {
       color: #00ffcc;
       text-decoration: none;
       margin: 0 40px;
     }
+    .ticker-outer {
+      display: flex;
+    }
+
     @keyframes scroll {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
   </style>
 </head>
 <body>
   <div class="ticker-wrap">
-    <div class="ticker" id="ticker">Загрузка новостей...</div>
+    <div class="ticker-outer">
+      <div class="ticker" id="ticker1">Загрузка новостей...</div>
+      <div class="ticker" id="ticker2"></div>
+    </div>
   </div>
 
   <script>
-  function loadNews() {
-    const RSS_URL = "https://ria.ru/export/rss2/archive/index.xml";
-    const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(RSS_URL);
+    function loadNews() {
+      const RSS_URL = "https://ria.ru/export/rss2/archive/index.xml";
+      const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(RSS_URL);
 
-    fetch(proxy)
-      .then(res => res.json())
-      .then(data => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(data.contents, "text/xml");
-        const items = Array.from(xml.querySelectorAll("item")).slice(0, 10);
+      fetch(proxy)
+        .then(response => response.json())
+        .then(data => {
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(data.contents, "text/xml");
+          const items = Array.from(xml.querySelectorAll("item")).slice(0, 10);
 
-        const ticker = document.getElementById("ticker");
-        ticker.innerHTML = "";
+          const ticker1 = document.getElementById("ticker1");
+          const ticker2 = document.getElementById("ticker2");
+          ticker1.innerHTML = "";
+          ticker2.innerHTML = "";
 
-        items.forEach(item => {
-          const title = item.querySelector("title").textContent;
-          const link = item.querySelector("link").textContent;
+          items.forEach(item => {
+            const title = item.querySelector("title").textContent;
+            const link = item.querySelector("link").textContent;
 
-          const a = document.createElement("a");
-          a.href = link;
-          a.target = "_blank";
-          a.textContent = title;
+            const a1 = document.createElement("a");
+            a1.href = link;
+            a1.target = "_blank";
+            a1.textContent = title;
+            ticker1.appendChild(a1);
 
-          ticker.appendChild(a);
+            const a2 = a1.cloneNode(true);
+            ticker2.appendChild(a2);
+          });
+        })
+        .catch(() => {
+          document.getElementById("ticker1").textContent = "Не удалось загрузить новости.";
         });
-      });
-  }
+    }
 
-  loadNews();
-  setInterval(loadNews, 5 * 60 * 1000); // обновлять каждые 5 минут
-</script>
+    loadNews();
+    setInterval(loadNews, 5 * 60 * 1000); // автообновление раз в 5 минут
+  </script>
 </body>
 </html>
