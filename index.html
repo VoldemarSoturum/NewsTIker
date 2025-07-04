@@ -58,7 +58,7 @@
         .then(data => {
           const parser = new DOMParser();
           const xml = parser.parseFromString(data.contents, "text/xml");
-          const items = Array.from(xml.querySelectorAll("item")).slice(0, 10);
+          const items = Array.from(xml.querySelectorAll("item")).slice(0, 30);
 
           const ticker1 = document.getElementById("ticker1");
           const ticker2 = document.getElementById("ticker2");
