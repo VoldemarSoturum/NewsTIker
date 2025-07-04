@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Новости</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+    }
+    .ticker-wrap {
+      width: 100%;
+      overflow: hidden;
+      background: #222;
+      height: 40px;
+      line-height: 40px;
+    }
+    .ticker {
+      display: inline-block;
+      white-space: nowrap;
+      animation: scroll 40s linear infinite;
+    }
+    .ticker a {
+      color: #00ffcc;
+      text-decoration: none;
+      margin: 0 40px;
+    }
+    @keyframes scroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">Загрузка новостей...</div>
+  </div>
+
+  <script>
+    const RSS_URL = "https://ria.ru/export/rss2/archive/index.xml";
+    const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(RSS_URL);
+
+    fetch(proxy)
+      .then(response => response.json())
+      .then(data => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data.contents, "text/xml");
+        const items = Array.from(xml.querySelectorAll("item")).slice(0, 10);
+
+        const ticker = document.getElementById("ticker");
+        ticker.innerHTML = "";
+
+        items.forEach(item => {
+          const title = item.querySelector("title").textContent;
+          const link = item.querySelector("link").textContent;
+
+          const a = document.createElement("a");
+          a.href = link;
+          a.target = "_blank";
+          a.textContent = title;
+
+          ticker.appendChild(a);
+        });
+      })
+      .catch(() => {
+        document.getElementById("ticker").textContent = "Не удалось загрузить новости.";
+      });
+  </script>
+</body>
+</html>
