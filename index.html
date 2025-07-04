@@ -40,11 +40,12 @@
   </div>
 
   <script>
+  function loadNews() {
     const RSS_URL = "https://ria.ru/export/rss2/archive/index.xml";
     const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(RSS_URL);
 
     fetch(proxy)
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
         const parser = new DOMParser();
         const xml = parser.parseFromString(data.contents, "text/xml");
@@ -64,10 +65,11 @@
 
           ticker.appendChild(a);
         });
-      })
-      .catch(() => {
-        document.getElementById("ticker").textContent = "Не удалось загрузить новости.";
       });
-  </script>
+  }
+
+  loadNews();
+  setInterval(loadNews, 5 * 60 * 1000); // обновлять каждые 5 минут
+</script>
 </body>
 </html>
