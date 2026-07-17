@@ -33,7 +33,6 @@
     .ticker-outer {
       display: flex;
     }
-
     @keyframes scroll {
       0%   { transform: translateX(0); }
       100% { transform: translateX(-50%); }
@@ -51,18 +50,17 @@
   <script>
     function loadNews() {
       const RSS_URL = "https://ria.ru/export/rss2/archive/index.xml";
-      // Используем corsproxy.io вместо allorigins.win
-      const proxy = "https://corsproxy.io/?" + encodeURIComponent(RSS_URL);
+      // Используем RSS2JSON — он возвращает готовый JSON
+      const url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(RSS_URL);
 
-      fetch(proxy)
+      fetch(url)
         .then(response => {
           if (!response.ok) throw new Error("HTTP " + response.status);
-          return response.text(); // corsproxy.io возвращает XML как текст
+          return response.json();
         })
-        .then(xmlText => {
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(xmlText, "text/xml");
-          const items = Array.from(xml.querySelectorAll("item")).slice(0, 30);
+        .then(data => {
+          if (data.status !== "ok") throw new Error(data.message || "Неизвестная ошибка");
+          const items = data.items.slice(0, 30); // массив объектов
 
           const ticker1 = document.getElementById("ticker1");
           const ticker2 = document.getElementById("ticker2");
@@ -70,26 +68,23 @@
           ticker2.innerHTML = "";
 
           items.forEach(item => {
-            const title = item.querySelector("title").textContent;
-            const link = item.querySelector("link").textContent;
-
             const a1 = document.createElement("a");
-            a1.href = link;
+            a1.href = item.link;
             a1.target = "_blank";
-            a1.textContent = title;
+            a1.textContent = item.title;
             ticker1.appendChild(a1);
-
             const a2 = a1.cloneNode(true);
             ticker2.appendChild(a2);
           });
         })
-        .catch(() => {
+        .catch(err => {
+          console.error("Ошибка загрузки новостей:", err);
           document.getElementById("ticker1").textContent = "Не удалось загрузить новости.";
         });
     }
 
     loadNews();
-    setInterval(loadNews, 5 * 60 * 1000); // автообновление раз в 5 минут
+    setInterval(loadNews, 5 * 60 * 1000);
   </script>
 </body>
 </html>
