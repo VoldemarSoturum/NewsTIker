@@ -51,13 +51,17 @@
   <script>
     function loadNews() {
       const RSS_URL = "https://ria.ru/export/rss2/archive/index.xml";
-      const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(RSS_URL);
+      // Используем corsproxy.io вместо allorigins.win
+      const proxy = "https://corsproxy.io/?" + encodeURIComponent(RSS_URL);
 
       fetch(proxy)
-        .then(response => response.json())
-        .then(data => {
+        .then(response => {
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          return response.text(); // corsproxy.io возвращает XML как текст
+        })
+        .then(xmlText => {
           const parser = new DOMParser();
-          const xml = parser.parseFromString(data.contents, "text/xml");
+          const xml = parser.parseFromString(xmlText, "text/xml");
           const items = Array.from(xml.querySelectorAll("item")).slice(0, 30);
 
           const ticker1 = document.getElementById("ticker1");
